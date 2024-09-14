@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitLab Issues</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .issue {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        .issue h3 {
+            margin-top: 0;
+        }
+        .issue-meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .open {
+            color: #27ae60;
+        }
+        .closed {
+            color: #c0392b;
+        }
+        #issueChart {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitLab Issues</h1>
+    
+    <h2>Issue Statistics</h2>
+    <div id="issueChart">
+        <canvas id="issueBarChart"></canvas>
+    </div>
+
+    <h2>Issue List</h2>
+    {% for issue in issues %}
+        <div class="issue">
+            <h3>{{ issue.title }}</h3>
+            <p class="issue-meta">
+                #{{ issue.iid }} | 
+                <span class="{% if issue.state == 'opened' %}open{% else %}closed{% endif %}">
+                    {{ issue.state }}
+                </span> | 
+                Created by: {{ issue.author.name }} | 
+                Created: {{ issue.created_at|date:"Y-m-d H:i" }}
+            </p>
+            <p>{{ issue.description|truncatewords:50 }}</p>
+        </div>
+    {% empty %}
+        <p>No issues found.</p>
+    {% endfor %}
+
+    <script>
+        const ctx = document.getElementById('issueBarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [{
+                    label: 'Number of Issues Created',
+                    data: {{ chart_data.data|safe }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Issues'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Users'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

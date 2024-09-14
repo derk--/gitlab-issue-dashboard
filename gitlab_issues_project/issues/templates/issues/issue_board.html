@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitLab Issue Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f8fa;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        #issueChart {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .board {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+        .column {
+            flex: 0 0 300px;
+            margin-right: 20px;
+            background-color: #ebecf0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .column-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .column-header img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .issue-card {
+            background-color: white;
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        .issue-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .issue-meta {
+            font-size: 0.8em;
+            color: #6a737d;
+        }
+        .label {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitLab Issue Dashboard</h1>
+    
+    <div id="issueChart">
+        <canvas id="issueBarChart"></canvas>
+    </div>
+
+    <div class="board">
+        {% for user in board_data %}
+            <div class="column">
+                <div class="column-header">
+                    <img src="{{ user.avatar_url }}" alt="{{ user.name }}">
+                    <h2>{{ user.name }}</h2>
+                </div>
+                {% for issue in user.issues %}
+                    <div class="issue-card">
+                        <div class="issue-title">{{ issue.title }}</div>
+                        <div class="issue-meta">
+                            #{{ issue.iid }} | {{ issue.state }} | Created: {{ issue.created_at|date:"Y-m-d" }}
+                        </div>
+                        <div>
+                            {% for label in issue.labels %}
+                                <span class="label" style="background-color: #{{ label.color }};">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No issues assigned.</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        const ctx = document.getElementById('issueBarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [{
+                    label: 'Number of Issues Created',
+                    data: {{ chart_data.data|safe }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Issues'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Users'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
